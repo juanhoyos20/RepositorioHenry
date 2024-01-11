@@ -1,0 +1,32 @@
+name: Sync up to CodeCommit
+
+on:
+  push:
+    branches:
+      - Prueba-1
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetches all history for all branches and tags
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2 # Set this to your AWS region
+
+      - name: Set up Git credentials for CodeCommit
+        run: |
+          git config --global credential.helper '!aws codecommit credential-helper $@'
+          git config --global credential.UseHttpPath true
+
+      - name: Push to CodeCommit
+        run: |
+          git remote add codecommit https://git-codecommit.us-east-2.amazonaws.com/v1/repos/Prueba-Sincro
+          git push codecommit HEAD:refs/heads/master --force
